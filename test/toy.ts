@@ -4,9 +4,7 @@ import fs from 'node:fs';
 
 const html = fs.readFileSync(new URL('./html/toy.html', import.meta.url)).toString();
 
-test('movie details', async t => {
-  const results = await parse(html);
-  const data = results.success ? results.data : undefined;
-
-  t.is(results.success, true);
+test('toy parsing', async t => {
+  const data = await parse(html);
+  t.is(data.blocked, false);
 });

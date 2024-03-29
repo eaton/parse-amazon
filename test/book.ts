@@ -6,8 +6,7 @@ const html = fs.readFileSync(new URL('./html/book.html', import.meta.url)).toStr
 
 test('book parses', async t => {
   const results = await parse(html);
-  const data = results.success ? results.data : undefined;
+  const data = await parse(html);
 
-  t.is(results.success, true);
-  t.is(data?.format, 'Paperback')
+  t.is(data.format, 'Paperback')
 });

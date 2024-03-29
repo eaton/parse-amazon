@@ -50,8 +50,7 @@
     "typescript": "^5.4.3"
   },
   "dependencies": {
-    "@sindresorhus/is": "^6.2.0",
-    "cheerio-json-mapper": "^1.0.3",
+    "@eatonfyi/markup": "github:eaton/markup",
     "zod": "^3.22.4"
   }
 }

@@ -5,6 +5,6 @@ import fs from 'node:fs';
 const html = fs.readFileSync(new URL('./html/book.html', import.meta.url)).toString();
 
 test('basic parsing', async t => {
-  const results = await parse(html);
-  t.is(results.success, true);
+  const data = await parse(html);
+  t.is(data.blocked, false);
 });
