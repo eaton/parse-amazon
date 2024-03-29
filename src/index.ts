@@ -1,14 +1,28 @@
 import { z } from 'zod';
 import { extract } from '@eatonfyi/markup';
 
-import {
-  carousel,
-  creator,
-  detailBullets,
-  expander,
-  productDetails,
-  productOverview
-} from './page-components/index.js'
+const azTrimmedString = z.string()
+  .transform(s => s?.replace('‏', '')?.replace('‎', '').trim())
+  .transform(s => s.length ? s : undefined)
+  .optional();
+
+const keyValueLabelList = z.array(z.object({
+  key: z.string(),
+  label: azTrimmedString,
+  value: azTrimmedString,
+}))
+.transform(items =>
+  Object.fromEntries(items.map(item => [item.key, { label: item.label, value: item.value }]))
+);
+
+const keyValueList = z.array(z.object({
+  label: azTrimmedString,
+  value: azTrimmedString,
+}))
+.transform(items =>
+  Object.fromEntries(items.map(item => [item.label, item.value ]))
+);
+
 
 export const template = {
   // If we detect that we've been blocked, dial everything back.
@@ -19,7 +33,12 @@ export const template = {
   asin: 'input[name=asin],input[name=ASIN] | attr:value',
   url: 'link[rel=canonical] | attr:href',
   title: '#productTitle',
-  creator: creator.template,
+  creator: [{
+    $: '#bylineInfo span.author',
+    name: 'a',
+    url: 'a | attr:href',
+    role: '.contribution'
+  }],
 
   format: 'div#formats div.selected span.slot-title > span, #tmmSwatches li.selected a > span:nth-child(1)', 
   series: '#seriesBulletWidget_feature_div',
@@ -32,11 +51,34 @@ export const template = {
     hires: '| attr:data-old-hires',
   },
 
-  carousel: carousel.template,
-  detailBullets: detailBullets.template,
-  expander: expander.template,
-  productDetails: productDetails.template,
-  productOverview: productOverview.template
+  carousel: [{
+    $: "div.rpi-attribute-content",
+    key: '| attr:id | split:- | last',
+    label: '> .rpi-attribute-label span',
+    value: '> .rpi-attribute-value | pad | text'
+  }],
+  detailBullets: [{
+    $: '#detailBullets_feature_div > ul > li span.a-list-item',
+    label: 'span:nth-child(1) | split:\: | first | trim',
+    value: 'span:nth-child(2)',
+  }],
+  expander: [{
+    $: '#poExpander tr',
+    key: '| attr:class | split: | index:1',
+    label: 'th',
+    value: 'td:nth-child(2)',
+  }],
+  productDetails: [{
+    $: '#prodDetails tr',
+    label: 'th',
+    value: 'td:nth-child(2)',
+  }],
+  productOverview: [{
+    $: '#productOverview_feature_div tr',
+    key: '| attr:class | split: | index:1',
+    label: 'th',
+    value: 'td:nth-child(2)',
+  }]
 };
 
 export const schema = z.object({
@@ -46,7 +88,11 @@ export const schema = z.object({
   asin: z.string().optional(),
   url: z.string().optional(),
   title: z.string().optional(),
-  creator: creator.schema.optional(),
+  creator: z.array(z.object({
+    name: z.string(),
+    role: azTrimmedString.transform(r => r?.replace(/[\(\)]/g, '').toLocaleLowerCase()),
+    url: azTrimmedString.transform(u => u ? 'https://www.amazon.com' + u : undefined),
+  })).optional(),
 
   format: z.string().optional(),
   series: z.string().optional(),
@@ -58,11 +104,11 @@ export const schema = z.object({
     hires: z.string().transform(s => s.replace(/._[A-Z0-9_]+_.jpg/, '.jpg')).optional(),
   }).optional(),
 
-  carousel: carousel.schema.optional(),
-  detailBullets: detailBullets.schema.optional(),
-  expander: expander.schema.optional(),
-  productDetails: productDetails.schema.optional(),
-  productOverview: productOverview.schema.optional()
+  carousel: keyValueLabelList.optional(),
+  detailBullets: keyValueList.optional(),
+  expander: keyValueLabelList.optional(),
+  productDetails: keyValueList.optional(),
+  productOverview: keyValueLabelList.optional()
 });
 
 export async function parse(html: string) {
