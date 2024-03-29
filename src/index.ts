@@ -57,22 +57,26 @@ export const template = {
     label: '> .rpi-attribute-label span',
     value: '> .rpi-attribute-value | pad | text'
   }],
+
   detailBullets: [{
     $: '#detailBullets_feature_div > ul > li span.a-list-item',
     label: 'span:nth-child(1) | split:\: | first | trim',
     value: 'span:nth-child(2)',
   }],
+
   expander: [{
     $: '#poExpander tr',
     key: '| attr:class | split: | index:1',
     label: 'th',
     value: 'td:nth-child(2)',
   }],
+
   productDetails: [{
     $: '#prodDetails tr',
     label: 'th',
     value: 'td:nth-child(2)',
   }],
+  
   productOverview: [{
     $: '#productOverview_feature_div tr',
     key: '| attr:class | split: | index:1',
